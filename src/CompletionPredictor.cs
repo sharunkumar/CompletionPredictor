@@ -14,13 +14,6 @@ public partial class CompletionPredictor : ICommandPredictor, IDisposable
     private string? _cwd;
     private int _lock = 1;
 
-    private static readonly HashSet<string> s_cmdList = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "%", "foreach", "ForEach-Object",
-        "?", "where", "Where-Object",
-        "cd", "dir",
-    };
-
     internal CompletionPredictor(string guid)
     {
         _guid = new Guid(guid);
