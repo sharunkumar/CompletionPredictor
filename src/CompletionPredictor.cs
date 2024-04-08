@@ -14,7 +14,7 @@ public partial class CompletionPredictor : ICommandPredictor, IDisposable
     private string? _cwd;
     private int _lock = 1;
 
-    private static HashSet<string> s_cmdList = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly HashSet<string> s_cmdList = new(StringComparer.OrdinalIgnoreCase)
     {
         "%", "foreach", "ForEach-Object",
         "?", "where", "Where-Object",
@@ -72,7 +72,7 @@ public partial class CompletionPredictor : ICommandPredictor, IDisposable
         return GetFromTabCompletion(context, cancellationToken);
     }
 
-    private bool IsCommandAstWithLiteralName(
+    private static bool IsCommandAstWithLiteralName(
         PredictionContext context,
         [NotNullWhen(true)] out CommandAst? cmdAst,
         [NotNullWhen(true)] out StringConstantExpressionAst? nameAst)
