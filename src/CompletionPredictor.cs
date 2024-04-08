@@ -11,7 +11,6 @@ public partial class CompletionPredictor : ICommandPredictor, IDisposable
 {
     private readonly Guid _guid;
     private readonly Runspace _runspace;
-    private readonly GitHandler _gitHandler;
     private string? _cwd;
     private int _lock = 1;
 
@@ -20,13 +19,11 @@ public partial class CompletionPredictor : ICommandPredictor, IDisposable
         "%", "foreach", "ForEach-Object",
         "?", "where", "Where-Object",
         "cd", "dir",
-        "git",
     };
 
     internal CompletionPredictor(string guid)
     {
         _guid = new Guid(guid);
-        _gitHandler = new GitHandler();
         _runspace = RunspaceFactory.CreateRunspace(InitialSessionState.CreateDefault());
         _runspace.Name = nameof(CompletionPredictor);
         _runspace.Open();
@@ -56,12 +53,6 @@ public partial class CompletionPredictor : ICommandPredictor, IDisposable
                 return default;
             }
 
-            if (cmd is "git")
-            {
-                // Process 'git' command.
-                return _gitHandler.GetGitResult(cmdAst, _cwd, context, cancellationToken);
-            }
-
             if (cmdAst.CommandElements.Count != 1)
             {
                 // For commands other than 'git', we only do argument completion if the cursor is right after the command name.
@@ -76,11 +67,6 @@ public partial class CompletionPredictor : ICommandPredictor, IDisposable
                 return default;
             }
 
-            if (IsCommandAstWithLiteralName(context, out var cmdAst, out var nameAst)
-                && string.Equals(nameAst.Value, "git", StringComparison.OrdinalIgnoreCase))
-            {
-                return _gitHandler.GetGitResult(cmdAst, _cwd, context, cancellationToken);
-            }
         }
 
         return GetFromTabCompletion(context, cancellationToken);
@@ -195,10 +181,7 @@ public partial class CompletionPredictor : ICommandPredictor, IDisposable
     public void OnSuggestionDisplayed(PredictionClient client, uint session, int countOrIndex) { }
     public void OnSuggestionAccepted(PredictionClient client, uint session, string acceptedSuggestion) { }
     public void OnCommandLineExecuted(PredictionClient client, string commandLine, bool success) { }
-    public void OnCommandLineAccepted(PredictionClient client, IReadOnlyList<string> history)
-    {
-        _gitHandler.SignalCheckForRepoUpdate();
-    }
+    public void OnCommandLineAccepted(PredictionClient client, IReadOnlyList<string> history) { }
 
     #endregion;
 }
