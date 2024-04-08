@@ -38,37 +38,6 @@ public partial class CompletionPredictor : ICommandPredictor, IDisposable
 
     public SuggestionPackage GetSuggestion(PredictionClient client, PredictionContext context, CancellationToken cancellationToken)
     {
-        Token tokenAtCursor = context.TokenAtCursor;
-        IReadOnlyList<Ast> relatedAsts = context.RelatedAsts;
-
-        if (tokenAtCursor is null)
-        {
-            // When it ends at a white space, it would likely trigger argument completion which in most cases would be file-operation
-            // intensive. That's not only slow but also undesirable in most cases, so we skip it.
-            // But, there are exceptions for some commands, where completion on member names is quite useful.
-            if (!IsCommandAstWithLiteralName(context, out var cmdAst, out var nameAst)
-                || !s_cmdList.TryGetValue(nameAst.Value, out string? cmd))
-            {
-                // Stop processing if the cursor is not at the end of an allowed command.
-                return default;
-            }
-
-            if (cmdAst.CommandElements.Count != 1)
-            {
-                // For commands other than 'git', we only do argument completion if the cursor is right after the command name.
-                return default;
-            }
-        }
-        else
-        {
-            if (tokenAtCursor.TokenFlags.HasFlag(TokenFlags.CommandName))
-            {
-                // When it's a command, it would likely take too much time because the command discovery is usually expensive, so we skip it.
-                return default;
-            }
-
-        }
-
         return GetFromTabCompletion(context, cancellationToken);
     }
 
